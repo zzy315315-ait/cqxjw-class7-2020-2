@@ -332,6 +332,7 @@
 <script src="game-auth.js"></script>
 <script src="auth-check.js"></script>
 <script src="bgm.js"></script>
+<link rel="stylesheet" href="perf.css">
 </head>
 <body>
 
@@ -730,9 +731,7 @@ function logout(){
     console.error('退出登录出错:', e);
   }
   // 跳转到登录页
-  setTimeout(function(){
-    location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
-  }, 100);
+  location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
 }
 
 function scrollToTop(){
@@ -773,6 +772,7 @@ if(document.readyState === 'loading'){
   initPhotoGallery();
 }
 </script>
+<script src="perf.js"></script>
 </body>
 </html>
 

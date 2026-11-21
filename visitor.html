@@ -331,6 +331,7 @@
 <script src="xauth.js"></script>
 <script src="game-auth.js"></script>
 <script src="bgm.js"></script>
+<link rel="stylesheet" href="perf.css">
 </head>
 <body>
 
@@ -474,7 +475,7 @@ function initPhotoGallery(){
     (function(src, idx){
       var item = document.createElement('div');
       item.className = 'photo-item reveal';
-      item.innerHTML = '<img src="' + src + '" alt="班级照片' + (idx+1) + '" loading="lazy"><div class="photo-overlay"><span>点击查看大图</span></div>';
+      item.innerHTML = '<img src="' + src.replace('photos/new/', 'photos/thumb/') + '" alt="班级照片' + (idx+1) + '" loading="lazy"><div class="photo-overlay"><span>点击查看大图</span></div>';
       item.addEventListener('click', function(){ openPhotoViewer(src); });
       gallery.appendChild(item);
     })(HOME_PHOTOS[i], i);
@@ -672,9 +673,7 @@ function logout(){
     console.error('退出登录出错:', e);
   }
   // 跳转到登录页
-  setTimeout(function(){
-    location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
-  }, 100);
+  location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
 }
 
 function scrollToTop(){
@@ -715,6 +714,7 @@ if(document.readyState === 'loading'){
   initPhotoGallery();
 }
 </script>
+<script src="perf.js"></script>
 </body>
 </html>
 

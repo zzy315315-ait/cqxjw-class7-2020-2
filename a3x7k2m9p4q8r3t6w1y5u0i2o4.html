@@ -336,6 +336,7 @@
 <script src="game-auth.js"></script>
 <script src="auth-check.js"></script>
 <script src="bgm.js"></script>
+<link rel="stylesheet" href="perf.css">
 </head>
 <body>
 
@@ -463,7 +464,7 @@
    主页 - 谢家湾学校2020级7班毕业记忆
    ============================================================ */
 
-/* 首页图片画廊 - 新素材（64张） */
+/* 首页图片画廊 - 只保留仓库里真实存在的素材（避免 404 裂图） */
 var HOME_PHOTOS = [
   'photos/new/Image_1787402509786_195.jpg',
   'photos/new/Image_1787402510032_964.jpg',
@@ -476,59 +477,7 @@ var HOME_PHOTOS = [
   'photos/new/Image_1787402513339_116.jpg',
   'photos/new/Image_1787402513383_308.jpg',
   'photos/new/Image_1787402513613_346.jpg',
-  'photos/new/Image_1787402513997_154.jpg',
-  'photos/new/Image_1787402514143_769.jpg',
-  'photos/new/Image_1787402514262_231.jpg',
-  'photos/new/Image_1787402514492_77.jpg',
-  'photos/new/Image_1787402514813_38.jpg',
-  'photos/new/Image_1787402514938_76.jpg',
-  'photos/new/Image_1787402515100_38.jpg',
-  'photos/new/Image_1787402515562_76.jpg',
-  'photos/new/Image_1787402515655_230.jpg',
-  'photos/new/Image_1787402515776_999.jpg',
-  'photos/new/Image_1787402516186_883.jpg',
-  'photos/new/Image_1787402516341_921.jpg',
-  'photos/new/Image_1787402516416_537.jpg',
-  'photos/new/Image_1787402516806_113.jpg',
-  'photos/new/Image_1787402517241_998.jpg',
-  'photos/new/Image_1787402517287_267.jpg',
-  'photos/new/Image_1787402517377_728.jpg',
-  'photos/new/Image_1787402517710_305.jpg',
-  'photos/new/Image_1787402517846_997.jpg',
-  'photos/new/Image_1787402517885_228.jpg',
-  'photos/new/Image_1787402518296_689.jpg',
-  'photos/new/Image_1787402518522_920.jpg',
-  'photos/new/Image_1787402518673_727.jpg',
-  'photos/new/Image_1787402518840_573.jpg',
-  'photos/new/Image_1787402518990_266.jpg',
-  'photos/new/Image_1787402519224_150.jpg',
-  'photos/new/Image_1787402519379_227.jpg',
-  'photos/new/Image_1787402519718_765.jpg',
-  'photos/new/Image_1787402519812_842.jpg',
-  'photos/new/Image_1787402520041_34.jpg',
-  'photos/new/Image_1787402520263_149.jpg',
-  'photos/new/Image_1787402569372_883.jpg',
-  'photos/new/Image_1787402569674_383.jpg',
-  'photos/new/Image_1787402569813_345.jpg',
-  'photos/new/Image_1787402570180_306.jpg',
-  'photos/new/Image_1787402892112_691.jpg',
-  'photos/new/Image_1787402892361_306.jpg',
-  'photos/new/Image_1787402923567_246.jpg',
-  'photos/new/Image_1787402940729_2.jpg',
-  'photos/new/Image_1787492311685_494.jpg',
-  'photos/new/Image_1787492357921_423.jpg',
-  'photos/new/Image_1787492381244_598.jpg',
-  'photos/new/Image_1787492386676_94.jpg',
-  'photos/new/Image_1787492398563_470.jpg',
-  'photos/new/Image_1787492414475_882.jpg',
-  'photos/new/Image_1787492423829_414.jpg',
-  'photos/new/Image_1787492452885_585.jpg',
-  'photos/new/Image_1787492481958_218.jpg',
-  'photos/new/Image_1787492482133_526.jpg',
-  'photos/new/Image_1787492482790_179.jpg',
-  'photos/new/Image_1787492482891_872.jpg',
-  'photos/new/Image_1787492483338_64.jpg',
-  'photos/new/Image_1787492490345_828.jpg'
+  'photos/new/Image_1787402513997_154.jpg'
 ];
 
 /* 初始化图片画廊 - 只展示6张 */
@@ -545,7 +494,7 @@ function initPhotoGallery(){
       item.style.opacity = '0';
       item.style.transform = 'translateY(20px)';
       item.style.transition = 'all .5s ease';
-      item.innerHTML = '<img src="' + src + '" alt="班级照片' + (idx+1) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'"><div class="photo-overlay"><span>点击查看大图</span></div>';
+      item.innerHTML = '<img src="' + src.replace('photos/new/', 'photos/thumb/') + '" alt="班级照片' + (idx+1) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'"><div class="photo-overlay"><span>点击查看大图</span></div>';
       item.addEventListener('click', function(){ openPhotoViewer(src); });
       gallery.appendChild(item);
       // 延迟显示，形成渐入效果
@@ -856,9 +805,7 @@ function logout(){
     console.error('退出登录出错:', e);
   }
   // 跳转到登录页
-  setTimeout(function(){
-    location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
-  }, 100);
+  location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
 }
 
 function scrollToTop(){
@@ -899,6 +846,7 @@ if(document.readyState === 'loading'){
   initPhotoGallery();
 }
 </script>
+<script src="perf.js"></script>
 </body>
 </html>
 
