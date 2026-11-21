@@ -332,6 +332,7 @@
     .more-dropdown{right:16px;width:200px}
   }
 </style>
+<script src="xauth.js"></script>
 <script src="game-auth.js"></script>
 <script src="auth-check.js"></script>
 <script src="bgm.js"></script>
@@ -388,16 +389,16 @@
 
     <!-- 更多下拉菜单（放在navbar内，定位正确） -->
     <div class="more-dropdown" id="moreDropdown">
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/classwall.html'"><span class="icon">🧱</span><span data-zh="班级墙" data-en="Class Wall">班级墙</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/message.html'"><span class="icon">💬</span><span data-zh="留言墙" data-en="Message Board">留言墙</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/developers.html'"><span class="icon">👨‍💻</span><span data-zh="开发者名单" data-en="Developers">开发者名单</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/classwall.html')"><span class="icon">🧱</span><span data-zh="班级墙" data-en="Class Wall">班级墙</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/message.html')"><span class="icon">💬</span><span data-zh="留言墙" data-en="Message Board">留言墙</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/developers.html')"><span class="icon">👨‍💻</span><span data-zh="开发者名单" data-en="Developers">开发者名单</span></div>
       <div class="more-item" onclick="window.open(GameAuth.buildRedirectUrl('https://my-website-8a7.pages.dev'), '_blank')"><span class="icon">🎮</span><span data-zh="小游戏" data-en="Mini Games">小游戏</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-4.pages.dev/ppt-viewer.html'"><span class="icon">📊</span><span data-zh="我们的六年" data-en="Our Six Years">我们的六年</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/contact-admin.html'"><span class="icon">📮</span><span data-zh="联系管理员" data-en="Contact Admin">联系管理员</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/ppt-viewer.html')"><span class="icon">📊</span><span data-zh="我们的六年" data-en="Our Six Years">我们的六年</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/contact-admin.html')"><span class="icon">📮</span><span data-zh="联系管理员" data-en="Contact Admin">联系管理员</span></div>
       <div class="more-divider"></div>
       <div class="more-item" onclick="location.href = 'https://cqxjw-class7-2020.pages.dev/login.html'"><span class="icon">🏠</span><span data-zh="返回登录页" data-en="Back to Login">返回登录页</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-4.pages.dev/settings.html'"><span class="icon">⚙️</span><span data-zh="个人设置" data-en="Settings">个人设置</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-4.pages.dev/change-password.html'"><span class="icon">🔑</span><span data-zh="修改密码" data-en="Change Password">修改密码</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/settings.html')"><span class="icon">⚙️</span><span data-zh="个人设置" data-en="Settings">个人设置</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/change-password.html')"><span class="icon">🔑</span><span data-zh="修改密码" data-en="Change Password">修改密码</span></div>
       <div class="more-divider"></div>
       <div class="more-item" onclick="logout()"><span class="icon">🚪</span><span data-zh="退出登录" data-en="Logout">退出登录</span></div>
     </div>
@@ -601,47 +602,65 @@ function downloadCurrentPhoto(){
   document.body.removeChild(link);
 }
 
-/* 直达检测：不是从登录页登录进来的，自动跳回登录页 */
+/* 直达/登录守卫：优先使用 xauth.js 统一登录态 */
+/* 跨域跳转时 ?auth=… 已在 <head> 由 xauth.js 同步解析并写入本域存储，这里不需要自己解密 */
 /* 支持保持登录：localStorage存储30天，过期自动清除 */
 (function(){
+  var loginUrl = (window.XAUTH && XAUTH.LOGIN_PAGE) || 'https://cqxjw-class7-2020.pages.dev/login.html';
   var ok = false;
-  // 同时检查sessionStorage和localStorage的登录session
-  var hasSession = localStorage.getItem('sb_session') || localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_session') || sessionStorage.getItem('sb_admin');
-  var loggedIn = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
-  
-  if(loggedIn && hasSession){
+
+  // 1) 优先用 XAUTH 判断（跨域进入时由 xauth.js 落盘）
+  if(window.XAUTH && typeof XAUTH.isLoggedIn === 'function' && XAUTH.isLoggedIn()){
     ok = true;
-    // 确保sessionStorage有标记
     sessionStorage.setItem('logged_in', '1');
-    if(localStorage.getItem('is_admin') || sessionStorage.getItem('is_admin')){
+    var _xuser = (typeof XAUTH.getUser === 'function') ? XAUTH.getUser() : null;
+    if((_xuser && (_xuser.role === 'admin' || _xuser.role === 'super_admin')) ||
+       localStorage.getItem('is_admin') || sessionStorage.getItem('is_admin')){
       sessionStorage.setItem('is_admin', '1');
     }
-  }else if(localStorage.getItem('logged_in') && hasSession){
-    var exp = parseInt(localStorage.getItem('login_expire') || '0');
-    if(Date.now() < exp){
+  }
+
+  // 2) 兼容旧版本地登录态（XAUTH 不存在或未命中时兜底）
+  if(!ok){
+    // 同时检查sessionStorage和localStorage的登录session
+    var hasSession = localStorage.getItem('sb_session') || localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_session') || sessionStorage.getItem('sb_admin');
+    var loggedIn = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
+
+    if(loggedIn && hasSession){
       ok = true;
+      // 确保sessionStorage有标记
       sessionStorage.setItem('logged_in', '1');
-      if(localStorage.getItem('is_admin')) sessionStorage.setItem('is_admin', '1');
+      if(localStorage.getItem('is_admin') || sessionStorage.getItem('is_admin')){
+        sessionStorage.setItem('is_admin', '1');
+      }
+    }else if(localStorage.getItem('logged_in') && hasSession){
+      var exp = parseInt(localStorage.getItem('login_expire') || '0');
+      if(Date.now() < exp){
+        ok = true;
+        sessionStorage.setItem('logged_in', '1');
+        if(localStorage.getItem('is_admin')) sessionStorage.setItem('is_admin', '1');
+      }else{
+        // 过期了，清除所有登录状态
+        localStorage.removeItem('logged_in');
+        localStorage.removeItem('login_expire');
+        localStorage.removeItem('is_admin');
+        localStorage.removeItem('sb_session');
+        localStorage.removeItem('sb_admin');
+        sessionStorage.removeItem('logged_in');
+        sessionStorage.removeItem('is_admin');
+      }
     }else{
-      // 过期了，清除所有登录状态
+      // 清理残留的无效登录标记
       localStorage.removeItem('logged_in');
       localStorage.removeItem('login_expire');
       localStorage.removeItem('is_admin');
-      localStorage.removeItem('sb_session');
-      localStorage.removeItem('sb_admin');
       sessionStorage.removeItem('logged_in');
       sessionStorage.removeItem('is_admin');
     }
-  }else{
-    // 清理残留的无效登录标记
-    localStorage.removeItem('logged_in');
-    localStorage.removeItem('login_expire');
-    localStorage.removeItem('is_admin');
-    sessionStorage.removeItem('logged_in');
-    sessionStorage.removeItem('is_admin');
   }
-  // 未登录跳转到登录页（不是人机验证页）
-  if(!ok){ window.location.href = "https://cqxjw-class7-2020.pages.dev/login.html"; }
+
+  // 未登录跳转到登录页（绝对地址）
+  if(!ok){ window.location.href = loginUrl; }
 })();
 
 // ===== 星空粒子生成 =====

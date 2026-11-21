@@ -328,6 +328,7 @@
     .more-dropdown{right:16px;width:200px}
   }
 </style>
+<script src="xauth.js"></script>
 <script src="game-auth.js"></script>
 <script src="bgm.js"></script>
 </head>
@@ -383,8 +384,8 @@
 
     <!-- 更多下拉菜单（访客版，放在navbar内） -->
     <div class="more-dropdown" id="moreDropdown">
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/message.html'"><span class="icon">💬</span><span data-zh="留言墙" data-en="Message Board">留言墙</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/developers.html'"><span class="icon">👨‍💻</span><span data-zh="开发者名单" data-en="Developers">开发者名单</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/message.html')"><span class="icon">💬</span><span data-zh="留言墙" data-en="Message Board">留言墙</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/developers.html')"><span class="icon">👨‍💻</span><span data-zh="开发者名单" data-en="Developers">开发者名单</span></div>
       <div class="more-item" onclick="location.href='https://cqxjw-class7-2020.pages.dev/register.html'"><span class="icon">📝</span><span data-zh="注册账号" data-en="Register">注册账号</span></div>
       <div class="more-divider"></div>
       <div class="more-item" onclick="location.href = 'https://cqxjw-class7-2020.pages.dev/login.html'"><span class="icon">🔑</span><span data-zh="登录/注册" data-en="Login / Register">登录/注册</span></div>
@@ -494,15 +495,14 @@ function closePhotoViewer(){
   document.body.style.overflow = '';
 }
 
-/* 访客主页：防直达检测，必须从登录页点击访客登录进入 */
+/* 访客主页守卫：登录页跨域跳转时通过 ?guest=1 传入访客身份，
+   xauth.js 已在 <head> 里同步解析并写入本域 sessionStorage。
+   注意：不同域名 sessionStorage 不共享，旧的一次性登录来源标记跨域读不到。 */
 (function(){
-  // 检查是否是访客模式（使用持久标记，而不是一次性标记）
-  var isVisitor = sessionStorage.getItem('mode') === 'visitor' || 
-                  sessionStorage.getItem('visitor_verified') === '1' ||
-                  sessionStorage.getItem('visitor_from_login') === '1';
-  if(!isVisitor){
-    // 不是访客模式，跳转到登录页
-    location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
+  // 统一用 XAUTH 判断访客身份
+  if(!(window.XAUTH && typeof XAUTH.isGuest === 'function' && XAUTH.isGuest())){
+    // 既不是访客也没有登录态 → 回登录页（必须用绝对地址）
+    location.href = (window.XAUTH && XAUTH.LOGIN_PAGE) || 'https://cqxjw-class7-2020.pages.dev/login.html';
     return;
   }
   // 设置访客标记（持久化，不清除）
@@ -513,16 +513,19 @@ function closePhotoViewer(){
 /* 设置访客标记，让公开页面能识别这是访客模式 */
 sessionStorage.setItem('mode', 'visitor');
 sessionStorage.setItem('visitor_verified', '1');
-/* 清除可能残留的登录状态，避免访客和登录用户混淆 */
-sessionStorage.removeItem('logged_in');
-localStorage.removeItem('logged_in');
-localStorage.removeItem('login_expire');
-localStorage.removeItem('is_admin');
-sessionStorage.removeItem('is_admin');
-localStorage.removeItem('sb_session');
-localStorage.removeItem('sb_admin');
-sessionStorage.removeItem('sb_session');
-sessionStorage.removeItem('sb_admin');
+/* 仅在确认访客模式时清除可能残留的登录状态，避免访客和登录用户混淆；
+   已登录用户（XAUTH.isLoggedIn() 为真）的 session 不能被这里误清掉。 */
+if(window.XAUTH && typeof XAUTH.isGuest === 'function' && XAUTH.isGuest()){
+  sessionStorage.removeItem('logged_in');
+  localStorage.removeItem('logged_in');
+  localStorage.removeItem('login_expire');
+  localStorage.removeItem('is_admin');
+  sessionStorage.removeItem('is_admin');
+  localStorage.removeItem('sb_session');
+  localStorage.removeItem('sb_admin');
+  sessionStorage.removeItem('sb_session');
+  sessionStorage.removeItem('sb_admin');
+}
 
 // ===== 星空粒子生成 =====
 (function(){

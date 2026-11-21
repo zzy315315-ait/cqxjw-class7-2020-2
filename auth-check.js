@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // 认证检测模块 - 后台自动检测登录状态 + 防直连检测
 // 使用方式：在页面中引入 <script src="auth-check.js"></script>
 // ============================================================
@@ -40,6 +40,8 @@ var AuthCheck = (function(){
 
   // 检查是否已登录
   function isLoggedIn(){
+    // 优先使用统一的 XAUTH 模块（跨域进入时 ?auth 已由 xauth.js 写入本域存储）
+    if(window.XAUTH && typeof XAUTH.isLoggedIn === 'function' && XAUTH.isLoggedIn()) return true;
     var hasSession = localStorage.getItem('sb_session') || localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_session') || sessionStorage.getItem('sb_admin');
     var hasLoginFlag = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
     return !!(hasSession || hasLoginFlag);
@@ -120,7 +122,7 @@ var AuthCheck = (function(){
           '为了网站安全，请从登录页面正常登录后访问。<br>' +
           '<span style="color:#f87171;font-weight:600;">如果再次直接访问，您的IP将被封禁一天。</span>' +
         '</p>' +
-        '<button onclick="this.closest(\'div\').parentElement.remove();location.href=\'login.html\'" style="padding:12px 32px;border-radius:10px;background:linear-gradient(135deg,#4a90ff,#6b5bff);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .25s;">前往登录页</button>' +
+        '<button onclick="this.closest(\'div\').parentElement.remove();location.href=\'' + ((window.XAUTH && XAUTH.LOGIN_PAGE) || 'https://cqxjw-class7-2020.pages.dev/login.html') + '\'" style="padding:12px 32px;border-radius:10px;background:linear-gradient(135deg,#4a90ff,#6b5bff);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .25s;">前往登录页</button>' +
       '</div>';
     document.body.appendChild(overlay);
   }

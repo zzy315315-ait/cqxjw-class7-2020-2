@@ -79,7 +79,7 @@ function requireLogin(){
     }
   }
   if(!ok){
-    window.location.href = CONFIG ? CONFIG.PAGES.login : 'login.html';
+    window.location.href = CONFIG ? CONFIG.PAGES.login : ((window.XAUTH && XAUTH.LOGIN_PAGE) || 'https://cqxjw-class7-2020.pages.dev/login.html');
     return false;
   }
   return true;
@@ -91,7 +91,7 @@ function requireAdmin(){
   if(!isAdminUser()){
     showToast('需要管理员权限', 'error');
     setTimeout(function(){
-      window.location.href = CONFIG ? CONFIG.PAGES.login : 'login.html';
+      window.location.href = CONFIG ? CONFIG.PAGES.login : ((window.XAUTH && XAUTH.LOGIN_PAGE) || 'https://cqxjw-class7-2020.pages.dev/login.html');
     }, 1500);
     return false;
   }

@@ -328,6 +328,7 @@
     .more-dropdown{right:16px;width:200px}
   }
 </style>
+<script src="xauth.js"></script>
 <script src="game-auth.js"></script>
 <script src="auth-check.js"></script>
 <script src="bgm.js"></script>
@@ -384,17 +385,17 @@
 
     <!-- 更多下拉菜单（管理员版，放在navbar内） -->
     <div class="more-dropdown" id="moreDropdown">
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/classwall.html'"><span class="icon">🧱</span><span data-zh="班级墙" data-en="Class Wall">班级墙</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/message.html'"><span class="icon">💬</span><span data-zh="留言墙" data-en="Message Board">留言墙</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/developers.html'"><span class="icon">👨‍💻</span><span data-zh="开发者名单" data-en="Developers">开发者名单</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/classwall.html')"><span class="icon">🧱</span><span data-zh="班级墙" data-en="Class Wall">班级墙</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/message.html')"><span class="icon">💬</span><span data-zh="留言墙" data-en="Message Board">留言墙</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/developers.html')"><span class="icon">👨‍💻</span><span data-zh="开发者名单" data-en="Developers">开发者名单</span></div>
       <div class="more-item" onclick="window.open(GameAuth.buildRedirectUrl('https://my-website-8a7.pages.dev'), '_blank')"><span class="icon">🎮</span><span data-zh="小游戏" data-en="Mini Games">小游戏</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-3.pages.dev/contact-admin.html'"><span class="icon">📮</span><span data-zh="联系管理员" data-en="Contact Admin">联系管理员</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/contact-admin.html')"><span class="icon">📮</span><span data-zh="联系管理员" data-en="Contact Admin">联系管理员</span></div>
       <div class="more-divider"></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-4.pages.dev/admin-feedback.html'"><span class="icon">📨</span><span data-zh="反馈管理" data-en="Feedback Management">反馈管理</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-4.pages.dev/admin-leaderboard.html'"><span class="icon">🏆</span><span data-zh="排行榜管理" data-en="Leaderboard Management">排行榜管理</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-4.pages.dev/admin-settings.html'"><span class="icon">⚙️</span><span data-zh="管理员设置" data-en="Admin Settings">管理员设置</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-4.pages.dev/settings.html'"><span class="icon">👤</span><span data-zh="个人设置" data-en="Settings">个人设置</span></div>
-      <div class="more-item" onclick="location.href='https://cqxjw-class7-2020-4.pages.dev/change-password.html'"><span class="icon">🔑</span><span data-zh="修改密码" data-en="Change Password">修改密码</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/admin-feedback.html')"><span class="icon">📨</span><span data-zh="反馈管理" data-en="Feedback Management">反馈管理</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/admin-leaderboard.html')"><span class="icon">🏆</span><span data-zh="排行榜管理" data-en="Leaderboard Management">排行榜管理</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/admin-settings.html')"><span class="icon">⚙️</span><span data-zh="管理员设置" data-en="Admin Settings">管理员设置</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/settings.html')"><span class="icon">👤</span><span data-zh="个人设置" data-en="Settings">个人设置</span></div>
+      <div class="more-item" onclick="XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/change-password.html')"><span class="icon">🔑</span><span data-zh="修改密码" data-en="Change Password">修改密码</span></div>
       <div class="more-item" onclick="location.href = 'https://cqxjw-class7-2020.pages.dev/login.html'"><span class="icon">🏠</span><span data-zh="返回登录页" data-en="Back to Login">返回登录页</span></div>
       <div class="more-divider"></div>
       <div class="more-item" onclick="logout()"><span class="icon">🚪</span><span data-zh="退出登录" data-en="Logout">退出登录</span></div>
@@ -504,51 +505,67 @@ function closePhotoViewer(){
   document.body.style.overflow = '';
 }
 
-/* 管理员主页直达检测：必须登录且是管理员 */
+/* 管理员主页守卫：必须已登录且是管理员 */
+/* 跨域跳转时 ?auth=… 已在 <head> 由 xauth.js 同步解析并写入本域存储，这里不需要自己解密 */
 (function(){
-  var ok = false;
+  var loginUrl = (window.XAUTH && XAUTH.LOGIN_PAGE) || 'https://cqxjw-class7-2020.pages.dev/login.html';
   var ADMIN_UIDS = ["919f3af0-801d-4d7b-87b4-03bedc9d2896", "6522e17f-14ea-4f1f-b20d-10457d598fef"];
-  // 同时检查sessionStorage和localStorage的管理员session
-  var adminSession = localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin');
-  var loggedIn = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
-  
-  if(loggedIn && adminSession){
-    try{
-      var adm = JSON.parse(adminSession);
-      if(adm && adm.uid && ADMIN_UIDS.indexOf(adm.uid) >= 0){
-        ok = true;
-        // 确保sessionStorage有标记
-        sessionStorage.setItem('logged_in', '1');
-        sessionStorage.setItem('is_admin', '1');
-      }
-    }catch(e){}
+  var ok = false;
+
+  // 1) 优先用 XAUTH 取登录用户（跨域进入时由 xauth.js 落盘，sb_admin 也会一并写入）
+  if(window.XAUTH && typeof XAUTH.isLoggedIn === 'function' && XAUTH.isLoggedIn()){
+    var _xuser = (typeof XAUTH.getUser === 'function') ? XAUTH.getUser() : null;
+    if(_xuser && _xuser.uid && ADMIN_UIDS.indexOf(_xuser.uid) >= 0){
+      ok = true;
+      sessionStorage.setItem('logged_in', '1');
+      sessionStorage.setItem('is_admin', '1');
+    }
   }
-  
-  // 检查localStorage的持久登录（带过期时间）
-  if(!ok && localStorage.getItem('logged_in') && adminSession){
-    var exp = parseInt(localStorage.getItem('login_expire') || '0');
-    if(Date.now() < exp){
+
+  // 2) 兼容旧版本地管理员登录态（XAUTH 不存在或未命中时兜底）
+  if(!ok){
+    // 同时检查sessionStorage和localStorage的管理员session
+    var adminSession = localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin');
+    var loggedIn = sessionStorage.getItem('logged_in') || localStorage.getItem('logged_in');
+
+    if(loggedIn && adminSession){
       try{
-        var adm2 = JSON.parse(adminSession);
-        if(adm2 && adm2.uid && ADMIN_UIDS.indexOf(adm2.uid) >= 0){
+        var adm = JSON.parse(adminSession);
+        if(adm && adm.uid && ADMIN_UIDS.indexOf(adm.uid) >= 0){
           ok = true;
+          // 确保sessionStorage有标记
           sessionStorage.setItem('logged_in', '1');
           sessionStorage.setItem('is_admin', '1');
         }
       }catch(e){}
-    }else{
-      // 过期了，清除所有登录状态
-      localStorage.removeItem('logged_in');
-      localStorage.removeItem('login_expire');
-      localStorage.removeItem('is_admin');
-      localStorage.removeItem('sb_admin');
-      sessionStorage.removeItem('logged_in');
-      sessionStorage.removeItem('is_admin');
+    }
+
+    // 检查localStorage的持久登录（带过期时间）
+    if(!ok && localStorage.getItem('logged_in') && adminSession){
+      var exp = parseInt(localStorage.getItem('login_expire') || '0');
+      if(Date.now() < exp){
+        try{
+          var adm2 = JSON.parse(adminSession);
+          if(adm2 && adm2.uid && ADMIN_UIDS.indexOf(adm2.uid) >= 0){
+            ok = true;
+            sessionStorage.setItem('logged_in', '1');
+            sessionStorage.setItem('is_admin', '1');
+          }
+        }catch(e){}
+      }else{
+        // 过期了，清除所有登录状态
+        localStorage.removeItem('logged_in');
+        localStorage.removeItem('login_expire');
+        localStorage.removeItem('is_admin');
+        localStorage.removeItem('sb_admin');
+        sessionStorage.removeItem('logged_in');
+        sessionStorage.removeItem('is_admin');
+      }
     }
   }
-  
-  // 未登录跳转到登录页（不是人机验证页）
-  if(!ok){ window.location.href = "https://cqxjw-class7-2020.pages.dev/login.html"; }
+
+  // 未登录/非管理员跳转到登录页（绝对地址）
+  if(!ok){ window.location.href = loginUrl; }
 })();
 
 // ===== 星空粒子生成 =====
