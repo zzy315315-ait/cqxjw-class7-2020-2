@@ -293,8 +293,9 @@
   .reveal.visible{opacity:1;transform:translateY(0)}
 
   /* ===== 图片画廊 ===== */
-  .photo-gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:30px}
-  .photo-item{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:1;cursor:pointer;transition:all .35s;background:rgba(255,255,255,0.05)}
+  .photo-gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:30px;max-width:960px;margin-left:auto;margin-right:auto}
+  #photoGallery{grid-template-columns:repeat(2,1fr) !important;gap:16px !important;max-width:960px;margin-left:auto;margin-right:auto}
+  .photo-item{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;cursor:pointer;transition:all .35s;background:rgba(255,255,255,0.05)}
   .photo-item:hover{transform:scale(1.03);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
   .photo-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
   .photo-item:hover img{transform:scale(1.1)}
@@ -451,20 +452,10 @@
    主页 - 谢家湾学校2020级7班毕业记忆
    ============================================================ */
 
-/* 首页图片画廊 - 新素材 */
+/* 首页图片画廊 - 入学合照与银杏合影两张并排 */
 var HOME_PHOTOS = [
-  'photos/new/Image_1787402509786_195.jpg',
-  'photos/new/Image_1787402510032_964.jpg',
-  'photos/new/Image_1787402510751_502.jpg',
-  'photos/new/Image_1787402510928_2.jpg',
-  'photos/new/Image_1787402511583_886.jpg',
-  'photos/new/Image_1787402511698_771.jpg',
-  'photos/new/Image_1787402512477_693.jpg',
-  'photos/new/Image_1787402512607_155.jpg',
-  'photos/new/Image_1787402513339_116.jpg',
-  'photos/new/Image_1787402513383_308.jpg',
-  'photos/new/Image_1787402513613_346.jpg',
-  'photos/new/Image_1787402513997_154.jpg'
+  {src:'photos/ruxue.jpg', caption:'入学合照'},
+  {src:'photos/yinxing.jpg', caption:'银杏树下合影'}
 ];
 
 function initPhotoGallery(){
@@ -472,11 +463,11 @@ function initPhotoGallery(){
   if(!gallery) return;
   gallery.innerHTML = '';
   for(var i = 0; i < HOME_PHOTOS.length; i++){
-    (function(src, idx){
+    (function(photo, idx){
       var item = document.createElement('div');
       item.className = 'photo-item reveal';
-      item.innerHTML = '<img src="' + src.replace('photos/new/', 'photos/thumb/') + '" alt="班级照片' + (idx+1) + '" loading="lazy"><div class="photo-overlay"><span>点击查看大图</span></div>';
-      item.addEventListener('click', function(){ openPhotoViewer(src); });
+      item.innerHTML = '<img src="' + photo.src + '" alt="' + photo.caption + '" loading="lazy"><div class="photo-overlay"><span>' + photo.caption + ' · 点击查看大图</span></div>';
+      item.addEventListener('click', function(){ openPhotoViewer(photo.src); });
       gallery.appendChild(item);
     })(HOME_PHOTOS[i], i);
   }
