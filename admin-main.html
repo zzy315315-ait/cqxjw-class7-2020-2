@@ -338,6 +338,13 @@
     .nav-user{padding:4px 8px 4px 4px}
     .nav-avatar{width:24px;height:24px;font-size:10px}
     .more-dropdown{right:16px;width:200px}
+    .photo-gallery{grid-template-columns:repeat(2,1fr);gap:10px}
+  }
+  @media(max-width:380px){
+    .navbar{padding:8px 12px}
+    .nav-brand-sub{display:none}
+    .section{padding:50px 14px}
+    .about-grid,.gallery{grid-template-columns:1fr;gap:16px}
   }
 </style>
 <script src="config.js"></script>
@@ -842,6 +849,7 @@ if(document.readyState === 'loading'){
 }
 </script>
 <script src="perf.js" defer></script>
+<script src="visit-counter.js"></script>
 </body>
 </html>
 
