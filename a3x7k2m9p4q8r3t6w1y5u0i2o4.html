@@ -140,6 +140,18 @@
     cursor:pointer;transition:all .25s;color:#9aa8d0;font-size:18px;
   }
   .nav-more:hover{background:rgba(255,255,255,0.1);color:#e8efff}
+  .nav-msg{
+    position:relative;width:36px;height:36px;border-radius:8px;
+    background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all .25s;color:#9aa8d0;
+  }
+  .nav-msg:hover{background:rgba(91,168,255,0.15);border-color:rgba(91,168,255,0.3);color:#7bc0ff}
+  .msg-badge{
+    position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;
+    border-radius:9px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;line-height:1;
+  }
 
   /* 更多下拉菜单 */
   .more-dropdown{
@@ -333,6 +345,7 @@
     .more-dropdown{right:16px;width:200px}
   }
 </style>
+<script src="config.js"></script>
 <script src="xauth.js"></script>
 <script src="game-auth.js" defer></script>
 <script src="auth-check.js"></script>
@@ -373,6 +386,12 @@
         <div class="lang-option active" onclick="setLang('zh',event)">中文</div>
         <div class="lang-option" onclick="setLang('en',event)">English</div>
       </div>
+    </div>
+
+    <!-- 消息铃铛 -->
+    <div class="nav-msg" id="navMsg" onclick="openMessages()" title="消息">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      <span class="msg-badge" id="msgBadge" style="display:none">0</span>
     </div>
 
     <!-- 用户名 -->
@@ -599,6 +618,45 @@ function downloadCurrentPhoto(){
 
   // 未登录跳转到登录页（绝对地址）
   if(!ok){ window.location.href = loginUrl; }
+})();
+
+(function(){
+  function getMe(){
+    try{
+      var x = (window.XAUTH && typeof XAUTH.getUser === 'function') ? XAUTH.getUser() : null;
+      var sess = JSON.parse(localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session') || 'null');
+      var adm = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
+      return x || sess || adm;
+    }catch(e){ return null; }
+  }
+  window.openMessages = function(){
+    XAUTH.go('https://cqxjw-class7-2020-3.pages.dev/messages.html');
+  };
+  var me = getMe();
+  if(me && me.uid && window.CONFIG){
+    var authHead = {'apikey': CONFIG.ANON_KEY, 'Authorization': 'Bearer ' + (me.token || CONFIG.ANON_KEY)};
+    fetch(CONFIG.SUPABASE_URL + '/rest/v1/user_messages?select=id,title,msg_type,is_read&user_id=eq.' + me.uid + '&order=created_at.desc', {
+      headers: authHead
+    }).then(function(r){
+      if(r.status === 404) return [];
+      return r.json();
+    }).then(function(data){
+      if(!Array.isArray(data)) return;
+      var unread = data.filter(function(m){ return !m.is_read; });
+      if(unread.length > 0){
+        var b = document.getElementById('msgBadge');
+        if(b){ b.style.display = 'flex'; b.textContent = unread.length > 99 ? '99+' : unread.length; }
+      }
+      var hasWelcome = data.some(function(m){ return m.msg_type === 'system' && m.title === '欢迎登录'; });
+      if(!hasWelcome){
+        fetch(CONFIG.SUPABASE_URL + '/rest/v1/user_messages', {
+          method: 'POST',
+          headers: {'apikey': CONFIG.ANON_KEY, 'Authorization': 'Bearer ' + (me.token || CONFIG.ANON_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=minimal'},
+          body: JSON.stringify({user_id: me.uid, title: '欢迎登录', content: '欢迎回到毕业纪念班级站！有任何问题都可以在“联系管理员”里给我们留言。', msg_type: 'system', is_read: false})
+        }).catch(function(){});
+      }
+    }).catch(function(){});
+  }
 })();
 
 // ===== 星空粒子生成 =====
