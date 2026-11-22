@@ -395,7 +395,7 @@
     </div>
 
     <!-- 用户名 -->
-    <div class="nav-user" id="navUser">
+    <div class="nav-user" id="navUser" onclick="openProfile()" title="个人中心">
       <div class="nav-avatar" id="navAvatar">?</div>
       <span class="nav-username" id="navUsername">未登录</span>
     </div>
@@ -786,24 +786,52 @@ function toggleMobileMenu(){
 }
 
 // ===== 用户信息 =====
+function fillProfileName(user){
+  if(!user || !user.uid || !window.CONFIG) return;
+  fetch(CONFIG.SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + user.uid + '&select=name,nickname', {
+    headers: {'apikey': CONFIG.ANON_KEY, 'Authorization': 'Bearer ' + (user.token || CONFIG.ANON_KEY)}
+  }).then(function(r){ return r.json(); }).then(function(data){
+    var p = (data && data.length > 0) ? data[0] : null;
+    var nm = p ? (p.nickname || p.name) : '';
+    if(!nm) return;
+    user.name = nm;
+    ['sb_session','sb_admin'].forEach(function(key){
+      try{
+        if(localStorage.getItem(key)){ var s=JSON.parse(localStorage.getItem(key)); s.name=nm; localStorage.setItem(key,JSON.stringify(s)); }
+        if(sessionStorage.getItem(key)){ var s=JSON.parse(sessionStorage.getItem(key)); s.name=nm; sessionStorage.setItem(key,JSON.stringify(s)); }
+      }catch(e){}
+    });
+    var nu=document.getElementById('navUsername'), na=document.getElementById('navAvatar');
+    if(nu) nu.textContent = nm;
+    if(na) na.textContent = nm.charAt(0);
+  }).catch(function(){});
+}
+
 function updateUserInfo(){
   try{
     var navUsername = document.getElementById('navUsername');
     var navAvatar = document.getElementById('navAvatar');
     if(!navUsername) return;
-    
-    // 同时检查localStorage和sessionStorage
+
+    var xuser = (window.XAUTH && typeof XAUTH.getUser === 'function') ? XAUTH.getUser() : null;
     var session = JSON.parse(localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session') || 'null');
     var admin = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
-    var user = session || admin;
-    if(user && user.name){
-      navUsername.textContent = user.name;
-      if(navAvatar) navAvatar.textContent = user.name.charAt(0);
-    }else if(sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified')){
+    var user = xuser || session || admin;
+    var isVisitor = sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified');
+
+    if(user && (user.uid || user.token)){
+      if(user.name){
+        navUsername.textContent = user.name;
+        if(navAvatar) navAvatar.textContent = user.name.charAt(0);
+      }else{
+        navUsername.textContent = '加载中...';
+        if(navAvatar) navAvatar.textContent = '?';
+        fillProfileName(user);
+      }
+    }else if(isVisitor){
       navUsername.textContent = '访客';
       if(navAvatar) navAvatar.textContent = '访';
     }else{
-      // 未登录，跳转到登录页
       window.location.href = 'https://cqxjw-class7-2020.pages.dev/login.html';
     }
   }catch(e){
@@ -818,6 +846,23 @@ if(document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', updateUserInfo);
 }else{
   updateUserInfo();
+}
+
+function openProfile(){
+  var user = null;
+  try{
+    var xuser = (window.XAUTH && typeof XAUTH.getUser === 'function') ? XAUTH.getUser() : null;
+    var sess = JSON.parse(localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session') || 'null');
+    var adm = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
+    user = xuser || sess || adm;
+  }catch(e){}
+  var isVisitor = sessionStorage.getItem('mode') === 'visitor' || sessionStorage.getItem('visitor_verified');
+  if(!user || (!user.uid && !user.token)){
+    location.href = (window.XAUTH && XAUTH.LOGIN_PAGE) || 'https://cqxjw-class7-2020.pages.dev/login.html';
+    return;
+  }
+  if(isVisitor){ return; }
+  XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/settings.html');
 }
 
 function logout(){

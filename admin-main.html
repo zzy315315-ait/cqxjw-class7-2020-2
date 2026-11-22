@@ -390,7 +390,7 @@
     </div>
 
     <!-- 用户名 -->
-    <div class="nav-user" id="navUser">
+    <div class="nav-user" id="navUser" onclick="openProfile()" title="个人中心">
       <div class="nav-avatar" id="navAvatar">?</div>
       <span class="nav-username" id="navUsername">未登录</span>
     </div>
@@ -736,16 +736,38 @@ function toggleMobileMenu(){
 // ===== 用户信息 =====
 (function(){
   try{
-    var session = JSON.parse(localStorage.getItem('sb_session') || 'null');
-    var admin = JSON.parse(localStorage.getItem('sb_admin') || 'null');
-    var user = session || admin;
+    var xuser = (window.XAUTH && typeof XAUTH.getUser === 'function') ? XAUTH.getUser() : null;
+    var session = JSON.parse(localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session') || 'null');
+    var admin = JSON.parse(localStorage.getItem('sb_admin') || sessionStorage.getItem('sb_admin') || 'null');
+    var user = xuser || session || admin;
     if(user){
-      var name = user.name || '用户';
-      document.getElementById('navUsername').textContent = name;
-      document.getElementById('navAvatar').textContent = name.charAt(0);
+      if(user.name){
+        document.getElementById('navUsername').textContent = user.name;
+        document.getElementById('navAvatar').textContent = user.name.charAt(0);
+      }else if(user.uid && window.CONFIG){
+        document.getElementById('navUsername').textContent = '加载中...';
+        fetch(CONFIG.SUPABASE_URL + '/rest/v1/student_profiles?user_id=eq.' + user.uid + '&select=name', {
+          headers: {'apikey': CONFIG.ANON_KEY, 'Authorization': 'Bearer ' + (user.token || CONFIG.ANON_KEY)}
+        }).then(function(r){ return r.json(); }).then(function(data){
+          var p = (data && data.length > 0) ? data[0] : null;
+          if(p && p.name){
+            user.name = p.name;
+            document.getElementById('navUsername').textContent = p.name;
+            document.getElementById('navAvatar').textContent = p.name.charAt(0);
+          }
+        }).catch(function(){});
+      }
     }
   }catch(e){}
 })();
+
+function openProfile(){
+  if(window.XAUTH && XAUTH.LOGIN_PAGE && (!XAUTH.getUser())){
+    location.href = XAUTH.LOGIN_PAGE;
+    return;
+  }
+  XAUTH.go('https://cqxjw-class7-2020-4.pages.dev/settings.html');
+}
 
 function logout(){
   try{
