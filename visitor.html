@@ -651,26 +651,9 @@ function toggleMobileMenu(){
 
 function logout(){
   try{
-    // 清除访客状态
-    var keysToRemove = [
-      'visitor_verified', 'mode', 'visitor_from_login',
-      'bgm_state', 'bgm_muted', 'bgm_played'
-    ];
-    keysToRemove.forEach(function(key){
-      try{ localStorage.removeItem(key); }catch(e){}
-    });
-    // 保留验证状态_v，避免重新触发人机验证
-    var _v = sessionStorage.getItem('_v');
-    sessionStorage.clear();
-    if(_v) sessionStorage.setItem('_v', _v);
-    // 清除背景音乐状态
-    if(window.BGM && typeof BGM.clearAllState === 'function'){
-      BGM.clearAllState();
-    }
-  }catch(e){
-    console.error('退出登录出错:', e);
-  }
-  // 跳转到登录页
+    if(window.BGM && typeof BGM.clearAllState === 'function'){ BGM.clearAllState(); }
+  }catch(e){}
+  if(window.XAUTH && typeof XAUTH.logout === 'function'){ XAUTH.logout(); return; }
   location.replace('https://cqxjw-class7-2020.pages.dev/login.html');
 }
 
