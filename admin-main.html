@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <link rel="icon" type="image/png" href="xiaohui.png">
 <title>谢家湾学校2020级7班 · 毕业记忆</title>
 <style>
@@ -316,9 +316,10 @@
   .gallery-more{text-align:center;margin-top:24px}
   .gallery-more-btn{display:inline-block;padding:12px 32px;border-radius:12px;background:rgba(91,168,255,0.1);border:1px solid rgba(91,168,255,0.3);color:#7bc0ff;font-size:14px;font-weight:600;cursor:pointer;transition:all .25s;text-decoration:none}
   .gallery-more-btn:hover{background:rgba(91,168,255,0.2);border-color:rgba(91,168,255,0.5);transform:translateY(-2px)}
-  .photo-viewer{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.9);display:none;align-items:center;justify-content:center;padding:20px}
+  .photo-viewer{position:fixed;inset:0;width:100vw;height:100dvh;z-index:9999;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;padding:20px;touch-action:manipulation;overscroll-behavior:contain}
   .photo-viewer.active{display:flex}
-  .photo-viewer img{max-width:90%;max-height:90%;border-radius:12px;object-fit:contain}
+  .photo-viewer img{max-width:90%;max-height:88dvh;border-radius:12px;object-fit:contain;touch-action:manipulation;background:#000;opacity:0;transition:opacity .25s ease}
+  .photo-viewer img.loaded{opacity:1}
   .photo-viewer-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s}
   .photo-viewer-close:hover{background:rgba(255,255,255,0.2);transform:rotate(90deg)}
 
@@ -521,6 +522,9 @@ function initPhotoGallery(){
 function openPhotoViewer(src){
   var viewer = document.getElementById('photoViewer');
   var img = document.getElementById('photoViewerImg');
+  img.classList.remove('loaded');
+  img.onload = function(){ img.classList.add('loaded'); };
+  img.onerror = function(){ img.classList.add('loaded'); };
   img.src = src;
   viewer.classList.add('active');
   document.body.style.overflow = 'hidden';
